@@ -1,0 +1,67 @@
+[
+        {
+            "id": "1",
+            "key": "youzhengguonei",
+            "name": "邮政快递包裹"
+        },
+        {
+            "id": "2",
+            "key": "yunda",
+            "name": "韵达快递"
+        },
+        {
+            "id": "3",
+            "key": "zhongtong",
+            "name": "中通快递"
+        },
+        {
+            "id": "4",
+            "key": "yuantong",
+            "name": "圆通速递"
+        },
+        {
+            "id": "5",
+            "key": "shunfeng",
+            "name": "顺丰速运"
+        },
+        {
+            "id": "6",
+            "key": "huitongkuaidi",
+            "name": "百世快递"
+        },
+        {
+            "id": "7",
+            "key": "shentong",
+            "name": "申通快递"
+        },
+        {
+            "id": "8",
+            "key": "jd",
+            "name": "京东物流"
+        },
+        {
+            "id": "9",
+            "key": "tiantian",
+            "name": "天天快递"
+        },
+        {
+            "id": "10",
+            "key": "ems",
+            "name": "EMS"
+        },
+        {
+            "id": "11",
+            "key": "zhaijisong",
+            "name": "宅急送"
+        },
+        {
+            "id": "12",
+            "key": "baishiwuliu",
+            "name": "百世快运"
+        },
+        {
+            "id": "13",
+            "key": "debangkuaidi",
+            "name": "德邦快递"
+        }
+			]

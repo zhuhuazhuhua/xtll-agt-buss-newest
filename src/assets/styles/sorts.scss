@@ -1,0 +1,89 @@
+.basic {
+    .header {
+      @include fx(flex-start);
+      .casa {
+        margin-left: 50px;
+      }
+      .add-btn {
+        margin-left: 10px;
+      }
+      .radio-group {
+        @include fx(space-around);
+        margin-left: 100px;
+      }
+      .check-group {
+        margin-left: 100px;
+        display: flex;
+        .all-group {
+          margin-left: 20px;
+        }
+      }
+      .unPass {
+        margin-left: 100px;
+      }
+    }
+    .el-table {
+      .warning-row {
+        background-color: oldlace;
+      }
+      .table-expand {
+        font-size: 0;
+        margin-left: 200px;
+      }
+      .table-expand label {
+        width: 70px;
+        color: $label;
+      }
+      .table-expand .el-form-item {
+        margin-right: 0;
+        margin-bottom: 0;
+        display: flex;
+      }
+      .operate-btn {
+        margin-right: 3px;
+      }
+    }
+    .recommend-tag {
+      display: inline-block;
+      margin: 4px 0;
+      margin-right: 4px;
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+    .checkbox-group {
+      margin-left: 20px;
+    }
+    .upload-title {
+      text-align: center;
+    }
+    .uploader {
+      border: 1px dashed #d9d9d9;
+      border-radius: 6px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      .uploader-icon {
+        @include wh(178px, 178px);
+        @include sc(28px, #8c939d);
+        line-height: 178px;
+        text-align: center;
+      }
+      .identity {
+        @include wh(178px, 178px);
+        display: block;
+      }
+    }
+    .uploader:hover {
+      border-color: $uploadHoverBorder;
+    }
+    .img {
+      width: 300px;
+      display: block;
+      margin-top: 15px;
+    }
+    // .inline {
+    //   display: flex;
+    //   justify-content: start;
+    // }
+  }

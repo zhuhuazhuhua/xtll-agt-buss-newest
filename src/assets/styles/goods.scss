@@ -1,0 +1,89 @@
+.basic {
+    .header {
+      min-width: 900px;
+      @include fx(flex-start);
+      .add-btn {
+        font-weight: bold;
+        font-size: 18px;
+        margin-left: 10px;
+      }
+      .sort {
+        margin-left: 40px;
+      }
+      .radio-group,
+      .casa {
+        margin-left: 20px;
+      }
+    }
+    .el-table {
+      .warning-row {
+        background-color: oldlace;
+      }
+      .table-expand {
+        font-size: 0;
+        margin-left: 200px;
+      }
+      .table-expand label {
+        width: 70px;
+        color: $label;
+      }
+      .table-expand .el-form-item {
+        margin-right: 0;
+        margin-bottom: 0;
+        display: flex;
+      }
+      .nowrap {
+        white-space: nowrap;
+      }
+    }
+    .recommend-tag {
+      display: inline-block;
+      margin: 4px 0;
+      margin-right: 4px;
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+    .checkbox-group {
+      margin-left: 20px;
+    }
+    .rate {
+      margin-top: 10px;
+    }
+    .uploader {
+      border: 1px dashed #d9d9d9;
+      border-radius: 6px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      .uploader-icon {
+        @include wh(178px, 178px);
+        @include sc(28px, #8c939d);
+        line-height: 178px;
+        text-align: center;
+      }
+      .identity {
+        @include wh(178px, 178px);
+        display: block;
+      }
+    }
+    .uploader:hover {
+      border-color: $uploadHoverBorder;
+    }
+    .info-title {
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    .reason {
+      @include fx(flex-start);
+      @include sc(16px, #e4393c);
+      margin-bottom: 20px;
+    }
+    .info-form {
+      padding-left: 20px;
+    }
+    .img {
+      max-width: 200px;
+      margin-left: 20px;
+    }
+  }
