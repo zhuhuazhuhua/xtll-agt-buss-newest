@@ -32,7 +32,7 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
         '/api': {
-          target:'http://192.168.0.122:8050/',
+          target:'http://192.168.0.123:8050/',
           // target:'https:///www.xtll.top:8050/',
           changeOrigin:true, //允许跨域
           pathRewrite:{

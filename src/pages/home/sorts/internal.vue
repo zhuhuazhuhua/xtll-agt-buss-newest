@@ -6,7 +6,7 @@
           <div slot="header" class="header">
             <div>
               <span>账户列表</span>
-              <el-button type="text" @click="addNew" class="add-btn">新增账号</el-button>
+              <el-button v-if="perm5" type="text" @click="addNew" class="add-btn">新增商户</el-button>
             </div>
             <el-cascader class="casa" v-model="areaId" placeholder="请选择区域" :options="provinceOptions" @change="handleChange"></el-cascader>
             <div class="check-group">
@@ -15,7 +15,7 @@
                 <el-radio :label="7">内部审核未通过</el-radio>
               </el-radio-group>
             </div>
-            <el-dialog title="新增账号" :visible.sync="dialogFormVisible" :modal-append-to-body="false">
+            <el-dialog v-if="perm5" title="新增商户" :visible.sync="dialogFormVisible" :modal-append-to-body="false">
               <el-form
                 :model="ruleForm"
                 status-icon
@@ -195,8 +195,16 @@
                 align="center"
               ></el-table-column>
               <el-table-column label="手机号" prop="telephone" align="center"></el-table-column>
-              <!-- <el-table-column label="状态" prop="status" align="center"></el-table-column> -->
-              <el-table-column label="操作" align="center">
+              <el-table-column label="状态" align="center">
+                <template slot-scope="scope">
+                  <el-button
+                    size="mini"
+                    type="info"
+                    disabled
+                  >{{scope.row.status == '6' && type == '3' ? '内部创建审核中' : '内部创建审核未通过'}}</el-button>
+                </template>
+              </el-table-column>
+              <!-- <el-table-column v-if="perm4" label="操作" align="center">
                 <template slot-scope="scope">
                   <el-button
                     size="mini"
@@ -217,12 +225,12 @@
                     @click="showExam(scope.row)"
                   >修改</el-button>
                 </template>
-              </el-table-column>
+              </el-table-column> -->
             </el-table>
             <el-pagination
               style="margin-top: 16px; text-align:right;"
               layout="total, sizes, prev, pager, next, jumper"
-              :page-sizes="[5, 10, 15, 20]"
+              :page-sizes="[10, 20, 50, 100]"
               :total="total"
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
@@ -230,7 +238,7 @@
           </div>
         </el-card>
         <!-- 内部审核弹框 -->
-        <el-dialog :visible.sync="dialogExamVisible" :modal-append-to-body="false">
+        <el-dialog v-if="perm4" :visible.sync="dialogExamVisible" :modal-append-to-body="false">
           <exam :objItem="examItem" @examUp="commit" :type="type"></exam>
         </el-dialog>
       </el-col>
@@ -247,31 +255,10 @@ export default {
   components: {
     exam
   },
-  mounted() {
-    this.getTableData();
-    this.superPlat();
-  },
   data() {
-    // var validatePass = (rule, value, callback) => {
-    //   if (value === "") {
-    //     callback(new Error("请输入密码"));
-    //   } else {
-    //     if (this.ruleForm.prePassword !== "") {
-    //       this.$refs.ruleForm.validateField("prePassword");
-    //     }
-    //     callback();
-    //   }
-    // };
-    // var validatePass2 = (rule, value, callback) => {
-    //   if (value === "") {
-    //     callback(new Error("请再次输入密码"));
-    //   } else if (value !== this.ruleForm.password) {
-    //     callback(new Error("两次输入密码不一致!"));
-    //   } else {
-    //     callback();
-    //   }
-    // };
     return {
+      perm4: false,
+      perm5: false,
       time: "",
       provinceOptions: [],
       tableData: [],
@@ -317,8 +304,17 @@ export default {
     }
   },
   created() {
+    this.getPermTrueOrFalse();
+  },
+   mounted() {
+    this.getTableData();
+    this.superPlat();
   },
   methods: {
+    getPermTrueOrFalse() {
+      this.perm4 = this.getTrueOrFalse("4");
+      this.perm5 = this.getTrueOrFalse("5");
+    },
     filePaths(filePath, paths) {
       let lastPaths = paths.split(',');
       let allPaths = lastPaths.map(item => {
@@ -605,7 +601,8 @@ export default {
       let data = {
         pageNum: this.currentpage,
         pageSize: this.pagesize,
-        status: this.statusType
+        status: this.statusType,
+        areaId: this.areaId
       };
       console.log(data);
       let url = "/buss/findBussByPage";
@@ -613,8 +610,8 @@ export default {
         .post(url, data)
         .then(res => {
           if (res.code == 1) {
-            this.tableData = res.rows;
-            this.total = res.total;
+            this.tableData = res.data.rows;
+            this.total = res.data.total;
             this.loading = false;
           } else {
             this.tableData = [];

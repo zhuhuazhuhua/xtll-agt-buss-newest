@@ -32,9 +32,9 @@
         margin-bottom: 0;
         display: flex;
       }
-      .nowrap {
-        white-space: nowrap;
-      }
+      // .nowrap {
+      //   white-space: nowrap;
+      // }
     }
     .recommend-tag {
       display: inline-block;
@@ -82,8 +82,19 @@
     .info-form {
       padding-left: 20px;
     }
+    .special {
+      margin-bottom: 20px;
+    }
+    .special-left {
+      margin-left: 40px;
+    }
     .img {
       max-width: 200px;
-      margin-left: 20px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .send-areas {
+      max-height: 50px!important;
+      max-width: 100px!important;
     }
   }

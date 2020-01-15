@@ -63,5 +63,20 @@
             "id": "13",
             "key": "debangkuaidi",
             "name": "德邦快递"
+        },
+        {
+            "id": "14",
+            "key": "youshuwuliu",
+            "name": "优速快递"
+        },
+        {
+            "id": "15",
+            "key": "shenghuiwuliu",
+            "name": "盛辉物流"
+        },
+        {
+            "id": "16",
+            "key": "suer",
+            "name": "速尔快递"
         }
 			]

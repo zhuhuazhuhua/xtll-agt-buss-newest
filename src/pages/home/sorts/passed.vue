@@ -6,10 +6,10 @@
           <div slot="header" class="header">
             <div>
               <span>账户列表</span>
-              <el-button type="text" @click="addNew" class="add-btn">新增账号</el-button>
+              <el-button v-if="perm5" type="text" @click="addNew" class="add-btn">新增商户</el-button>
             </div>
             <el-cascader class="casa" v-model="areaId" placeholder="请选择区域" :options="provinceOptions" @change="handleChange"></el-cascader>
-            <el-dialog title="新增账号" :visible.sync="dialogFormVisible" :modal-append-to-body="false">
+            <el-dialog v-if="perm5" title="新增商户" :visible.sync="dialogFormVisible" :modal-append-to-body="false">
               <el-form
                 :model="ruleForm"
                 status-icon
@@ -213,7 +213,7 @@
             <el-pagination
               style="margin-top: 16px; text-align:right;"
               layout="total, sizes, prev, pager, next, jumper"
-              :page-sizes="[5, 10, 15, 20]"
+              :page-sizes="[10, 20, 50, 100]"
               :total="total"
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
@@ -240,31 +240,9 @@ export default {
   components: {
     exam
   },
-  mounted() {
-    this.getTableData();
-    this.superPlat();
-  },
   data() {
-    // var validatePass = (rule, value, callback) => {
-    //   if (value === "") {
-    //     callback(new Error("请输入密码"));
-    //   } else {
-    //     if (this.ruleForm.prePassword !== "") {
-    //       this.$refs.ruleForm.validateField("prePassword");
-    //     }
-    //     callback();
-    //   }
-    // };
-    // var validatePass2 = (rule, value, callback) => {
-    //   if (value === "") {
-    //     callback(new Error("请再次输入密码"));
-    //   } else if (value !== this.ruleForm.password) {
-    //     callback(new Error("两次输入密码不一致!"));
-    //   } else {
-    //     callback();
-    //   }
-    // };
     return {
+      perm5: false,
       time: "",
       provinceOptions: [],
       tableData: [],
@@ -310,8 +288,16 @@ export default {
     }
   },
   created() {
+    this.getPermTrueOrFalse();
+  },
+  mounted() {
+    this.getTableData();
+    this.superPlat();
   },
   methods: {
+    getPermTrueOrFalse() {
+      this.perm5 = this.getTrueOrFalse("5");
+    },
     filePaths(filePath, paths) {
       let lastPaths = paths.split(',');
       let allPaths = lastPaths.map(item => {
@@ -448,7 +434,6 @@ export default {
     //提交审核
     commit(e) {
       if (e.commitType != "1") {
-
         let data = {
           id: this.examItem.id,
           status: this.examItem.status,
@@ -630,15 +615,17 @@ export default {
       let data = {
         pageNum: this.currentpage,
         pageSize: this.pagesize,
-        status: '1'
+        status: '1',
+        areaId: this.areaId
       };
       let url = "/buss/findBussByPage";
       this.axios
         .post(url, data)
         .then(res => {
           if (res.code == 1) {
-            this.tableData = res.rows;
-            this.total = res.total;
+            console.log(res);
+            this.tableData = res.data.rows;
+            this.total = res.data.total;
             this.loading = false;
           } else {
             this.tableData = [];

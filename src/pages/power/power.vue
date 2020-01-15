@@ -4,7 +4,7 @@
       <el-col :span="24">
         <el-card>
           <div slot="header">权限管理</div>
-          <div class="table-wrapper">
+          <div v-if="perm14 || perm15" class="table-wrapper">
             <el-form label-position="right" ref="roleForm">
               <el-form-item label="管理员类型列表" :label-width="labelWidth">
                 <el-select v-model="currentRoleName" @change="changeRole" placeholder="请选择">
@@ -50,6 +50,7 @@
               </el-form-item>
             </el-form>
           </div>
+          <div v-if="!perm14 && !perm15" class="no-power table-wrapper">暂无权限</div>
         </el-card>
       </el-col>
     </el-row>
@@ -62,19 +63,27 @@ export default {
   components: {},
   data() {
     return {
+      perm15: false,
+      perm14: false,
       canAdd: true,
       labelWidth: "120px",
-      powerList: [
-        { value: "1", label: "上架" },
-        { value: "2", label: "下架" },
-        { value: "3", label: "商品审核" },
-        { value: "4", label: "商户审核" },
-        { value: "5", label: "代理商添加" },
-        { value: "6", label: "代理商修改" },
-        { value: "7", label: "代理商删除" },
-        { value: "8", label: "商户添加" },
-        { value: "9", label: "商户修改" },
-        { value: "10", label: "商户删除" }
+      powerList: localStorage.getItem('type') == '2' ? [
+        { value: "1", label: "子账号添加" },
+        { value: "2", label: "子账号修改(暂未开放)" },
+        { value: "3", label: "子账号删除(暂未开放)" },
+        { value: "4", label: "商户初审" },
+        { value: "5", label: "商户添加" },
+        { value: "6", label: "财务管理" },
+        { value: "14", label: "管理员类型设置" },
+      ] : [
+        { value: "7", label: "商品上架(暂未开放)" },
+        { value: "8", label: "商品下架" },
+        { value: "9", label: "商品添加" },
+        { value: "10", label: "商品修改" },
+        { value: "11", label: "订单管理" },
+        { value: "12", label: "子账号添加" },
+        { value: "13", label: "财务管理" },
+        { value: "15", label: "管理员类型设置" }
       ],
       powerChoose: [], //选中的权限
       addRoleName: "", //添加管理员类型名称
@@ -86,9 +95,17 @@ export default {
     };
   },
   created() {
+    this.getPermTrueOrFalse();
     this.getRoleList();
   },
   methods: {
+    getPermTrueOrFalse() {
+      if(this.loginType == '2') {
+        this.perm14 = this.getTrueOrFalse("14");
+      } else {
+        this.perm15 = this.getTrueOrFalse("15");
+      }
+    },
     getRoleList() {
       this.axios
         .get("/role/show?type=" + this.addType)
@@ -214,5 +231,8 @@ export default {
 }
 .operate {
   margin-left: 120px;
+}
+.no-power {
+  color: red;
 }
 </style>

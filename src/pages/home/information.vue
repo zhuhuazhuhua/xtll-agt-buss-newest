@@ -5,7 +5,7 @@
         <el-card>
           <div slot="header" class="header">
             <div>
-              <span>资料上传</span>
+              <span>企业信息</span>
               <span class="red" v-if="status != '1'">您的企业资料上传并审核通过后才可查看其他页面信息！</span>
             </div>
           </div>

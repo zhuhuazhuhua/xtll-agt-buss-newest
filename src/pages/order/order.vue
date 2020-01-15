@@ -3,8 +3,17 @@
     <el-row>
       <el-col :span="24">
         <el-card>
-          <div slot="header">
+          <div slot="header" class="header">
             <span>商品列表</span>
+            <div class="check-group">
+              <el-radio-group class="unPass" v-model="statusType">
+                <el-radio :label="5">全部</el-radio>
+                <el-radio :label="0">等待配送</el-radio>
+                <el-radio :label="1">订单完成</el-radio>
+                <el-radio :label="2">配送中</el-radio>
+                <el-radio :label="3">异常</el-radio>
+              </el-radio-group>
+            </div>
             <!-- <el-cascader class="casa" v-model="value" :options="options" @change="handleChange"></el-cascader> -->
           </div>
           <div class="table-wrapper">
@@ -43,7 +52,7 @@
                   <el-button
                     size="mini"
                     type="primary"
-                    v-if="scope.row.status == '0'"
+                    v-if="scope.row.status == '0' && perm11"
                     @click="handleDistribute(scope.row, '1')"
                   >配 送</el-button>
                   <!-- <el-button
@@ -64,13 +73,14 @@
             <el-pagination
               style="margin-top: 16px; text-align:right;"
               layout="total, sizes, prev, pager, next, jumper"
-              :page-sizes="[5, 10, 15, 20]"
+              :page-sizes="[10, 20, 50, 100]"
               :total="total"
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
             ></el-pagination>
           </div>
           <el-dialog
+            v-if="perm11"
             title="填写物流号"
             :visible.sync="dialogVisible"
             :modal-append-to-body="false"
@@ -173,6 +183,8 @@ import rules from "src/assets/js/rules";
 export default {
   data() {
     return {
+      perm11: false,
+      statusType: 5,
       currentGoods: {},
       options: [],
       loading: true,
@@ -202,11 +214,22 @@ export default {
         .replace(/\.[\d]{3}Z/, "");
     }
   },
+  watch: {
+    statusType() {
+      this.getTableList();
+    }
+  },
+  created() {
+    this.getPermTrueOrFalse();
+  },
   mounted() {
     // this.getSort();
     this.getTableList();
   },
   methods: {
+    getPermTrueOrFalse() {
+        this.perm11 = this.getTrueOrFalse("11");
+    },
     getMail(e) {
       console.log(e);
     },
@@ -236,7 +259,9 @@ export default {
         this.value[this.value.length - 1] == 1
           ? ""
           : this.value[this.value.length - 1];
+      let status = this.statusType == '5' ? '0,1,2,3' : this.statusType;
       let data = {
+        status: status,
         pageNum: this.currentpage,
         pageSize: this.pagesize
       };
@@ -274,7 +299,8 @@ export default {
       });
       let data = {
         id: witch.id,
-        orderId: row.orderId
+        orderId: row.orderId,
+        phone: row.phone
       };
       this.axios.post("/getWuliuMessage", data).then(res => {
         if (res.code == "1") {
@@ -335,6 +361,7 @@ export default {
           if (res.code == "1") {
             this.getTableList();
             type == "1" && this.resetForm("ruleForm");
+            this.$message.success(res.msg);
           } else {
             this.$message({
               message: res.msg,
@@ -355,6 +382,7 @@ export default {
 
 <style scoped lang="scss">
 @import "../../assets/styles/mixin";
+@import "../../assets/styles/sorts";
 .goods-info {
   .info-item {
     margin-bottom: 10px;

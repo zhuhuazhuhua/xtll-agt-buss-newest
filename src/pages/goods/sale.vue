@@ -10,7 +10,7 @@
                 商品分类
                 <el-cascader class="casa" v-model="value" :options="options" @change="handleChange"></el-cascader>
               </span>
-              <el-button type="text" @click="addGoods" class="add-btn">新增商品</el-button>
+              <el-button v-if="perm9" type="text" @click="addGoods" class="add-btn">新增商品</el-button>
             </div>
           </div>
           <div class="table-wrapper">
@@ -48,7 +48,7 @@
                           class="nowrap"
                           v-for="(item, index) in props.row.areas"
                           :key="index"
-                        >{{item.province + ', '}}</span>
+                        >{{item.province + (item.city ? item.city : '')}}, </span>
                       </div>
                     </el-form-item>
                     <el-form-item label="商品图片" v-if="props.row.goodsPicList[0].goodsProductName">
@@ -118,12 +118,12 @@
               </el-table-column>
               <el-table-column label="配送范围" prop="areas" align="center">
                 <template slot-scope="scope">
-                  <div style="max-height: 50px!important;">
+                  <div class="send-areas">
                     <span
                       class="nowrap"
                       v-for="(item, index) in scope.row.areas"
                       :key="index"
-                    >{{item.province + ', '}}</span>
+                    >{{item.province + (item.city ? item.city : '')}}, </span>
                   </div>
                 </template>
               </el-table-column>
@@ -134,25 +134,30 @@
               </el-table-column>
               <el-table-column label="操作" align="center">
                 <template slot-scope="scope">
-                  <el-button size="mini" type="warning" @click="goodsDown(scope.row)">下架</el-button>
-                  <el-button size="mini" type="primary" @click="changed(scope.row)">修改</el-button>
+                  <el-button v-if="perm8" size="mini" type="warning" @click="goodsDown(scope.row)">下架</el-button>
+                  <el-button v-if="perm10" size="mini" type="primary" @click="changed(scope.row)">修改</el-button>
                 </template>
               </el-table-column>
             </el-table>
             <el-pagination
               style="margin-top: 16px; text-align:right;"
               layout="total, sizes, prev, pager, next, jumper"
-              :page-sizes="[5, 10, 15, 20]"
+              :page-sizes="[10, 20, 50, 100]"
               :total="total"
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
             ></el-pagination>
           </div>
           <el-dialog
+            v-if="perm9"
             title="新增商品"
             :visible.sync="dialogAddGoodsVisible"
             :modal-append-to-body="false"
           >
+            <el-radio-group class="special" v-model="special">
+              <el-radio :label="2">非特价商品</el-radio>
+              <el-radio :label="1">特价商品</el-radio>
+            </el-radio-group>
             <el-form
               v-show="addPage == '1'"
               class="info-form"
@@ -165,7 +170,7 @@
             >
               <div class="info-title">商品基本信息</div>
               <el-form-item label="商品名称" prop="name" :label-width="formLabelWidth">
-                <el-input v-model="ruleForm1.name" autocomplete="off"></el-input>
+                <el-input :maxlength="8" v-model="ruleForm1.name" autocomplete="off"></el-input>
               </el-form-item>
               <el-form-item label="商品种类" prop="goodsType" :label-width="formLabelWidth">
                 <el-cascader class="casa" v-model="ruleForm1.goodsType" :options="options1"></el-cascader>
@@ -174,7 +179,7 @@
                 <el-input v-model="ruleForm1.farm" autocomplete="off"></el-input>
               </el-form-item>-->
               <el-form-item label="产品规格" prop="specs" :label-width="formLabelWidth">
-                <el-input v-model="ruleForm1.specs" autocomplete="off"></el-input>
+                <el-input :maxlength="10" v-model="ruleForm1.specs" autocomplete="off"></el-input>
               </el-form-item>
               <el-form-item
                 label="应季期(全年配送请选择1月1号到1月1号)"
@@ -186,6 +191,7 @@
                   type="daterange"
                   value-format="MM-dd"
                   format="MM-dd"
+                  :editable="false"
                   range-separator="至"
                   start-placeholder="商品上市日期"
                   end-placeholder="商品下市日期"
@@ -208,10 +214,11 @@
                 ></el-cascader>
               </el-form-item>
               <el-form-item>
-                <div class="upload-title">商品图片(最少上传一张)</div>
+                <div class="upload-title">商品图片(一到五张图片)</div>
                 <el-upload
                   class="uploader"
                   action
+                  :limit="5"
                   accept="image/jpeg, image/gif, image/png"
                   :auto-upload="false"
                   list-type="picture-card"
@@ -325,7 +332,7 @@
               <el-button type="info" @click="cancelDialog">取 消</el-button>
             </div>
           </el-dialog>
-          <el-dialog title="商品修改" :visible.sync="dialogChangeVisible" :modal-append-to-body="false">
+          <el-dialog v-if="perm10" title="商品修改" :visible.sync="dialogChangeVisible" :modal-append-to-body="false">
             <goods-change :goods="changedGoods" @childChange="getChildChange"></goods-change>
           </el-dialog>
         </el-card>
@@ -344,11 +351,15 @@ export default {
   },
   data() {
     return {
-      areaOptions: [],
+      perm8: false,
+      perm9: false,
+      perm10: false,
+      special: 2,//是否是特价商品
+      areaOptions: all,
       formLabelWidth: "100px",
       statusType: "1,4,5",
       labelPosition: "top",
-      props: { multiple: true },
+      props: { multiple: true, checkStrictly: true },
       rate: "",
       dialogVisible: false,
       loading: false,
@@ -417,12 +428,20 @@ export default {
     };
   },
   created() {
-    this.areaOptions = all.map(item => {
-      return {
-        value: item.value,
-        label: item.label
-      };
+    let opts = JSON.parse(JSON.stringify(all));
+    $.each(opts, (index, item) => {
+      $.each(item.children, (secondIndex, secondItem) => {
+        delete secondItem.children;
+      });
     });
+    this.areaOptions = opts;
+    // this.areaOptions = all.map(item => {
+    //   return {
+    //     value: item.value,
+    //     label: item.label
+    //   };
+    // });
+    this.getPermTrueOrFalse();
   },
   mounted() {
     this.getTableData("1");
@@ -437,6 +456,14 @@ export default {
   },
   computed: {},
   methods: {
+    getAreas() {
+      console.log(this.ruleForm1.distribution);
+    },
+    getPermTrueOrFalse() {
+      this.perm8 = this.getTrueOrFalse("8");
+      this.perm9 = this.getTrueOrFalse("9");
+      this.perm10 = this.getTrueOrFalse("10");
+    },
     //图片组url拼接
     filePaths(filePath, paths) {
       let lastPaths = paths.split(",");
@@ -582,6 +609,7 @@ export default {
     },
     //添加商品提交表单
     submitForm(formName) {
+      console.log(this.fileList);
       this.$refs[formName].validate(valid => {
         if (valid) {
           if (this.addPage == "2") {
@@ -600,7 +628,7 @@ export default {
               let formData = new FormData();
               let distribution = [];
               distribution = this.ruleForm1.distribution.map(item => {
-                return item[0];
+                return item[item.length - 1];
               });
               formData.append("name", this.ruleForm1.name);
               formData.append("goodsType", this.ruleForm1.goodsType);
@@ -609,6 +637,7 @@ export default {
               formData.append("seasinalOnDate", this.ruleForm1.seasinal[0]);
               formData.append("seasinaloffDate", this.ruleForm1.seasinal[1]);
               formData.append("merchantPrice", this.ruleForm1.merchantPrice);
+              formData.append("bargainGoods", this.special);
               this.fileList.forEach(item => {
                 formData.append("productImages", item);
               });
@@ -622,9 +651,9 @@ export default {
               this.upFormData(url, formData);
             }
           } else {
-            if (!this.fileList.length) {
+            if (this.fileList.length == '0') {
               this.$message({
-                message: "请上传商品图片",
+                message: "请上传一到五张商品图片",
                 type: "error",
                 duration: 2000
               });

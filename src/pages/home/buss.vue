@@ -5,10 +5,10 @@
         <el-card>
           <div slot="header" class="header">
             <div>
-              <span>账户列表</span>
-              <el-button type="text" v-if="loginId == '0'" @click="addNew" class="add-btn">新增账号</el-button>
+              <span>管理员列表</span>
+              <el-button type="text" v-if="perm12" @click="addNew" class="add-btn">新增管理员</el-button>
             </div>
-            <el-dialog title="新增账号" :visible.sync="dialogFormVisible" :modal-append-to-body="false">
+            <el-dialog v-if="perm12" title="新增管理员" :visible.sync="dialogFormVisible" :modal-append-to-body="false">
               <el-form
                 :model="ruleForm"
                 status-icon
@@ -53,7 +53,7 @@
                 <el-button type="info" @click="dialogFormVisible = false">取 消</el-button>
               </div>
             </el-dialog>
-            <el-dialog title="修改账号" :visible.sync="dialogEditVisible" :modal-append-to-body="false">
+            <el-dialog v-if="perm12" title="修改账号" :visible.sync="dialogEditVisible" :modal-append-to-body="false">
               <el-form status-icon :inline="true" :label-position="labelPosition">
                 <!-- <div></div>
                 <el-button type="primary" @click="update('1')">重置密码</el-button>-->
@@ -130,7 +130,7 @@
               <el-table-column label="管理员名" prop="name" align="center"></el-table-column>
               <el-table-column label="手机号" prop="telephone" align="center"></el-table-column>
               <!-- <el-table-column label="状态" prop="status" align="center"></el-table-column> -->
-              <el-table-column label="操作" align="center">
+              <!-- <el-table-column label="操作" align="center">
                 <template slot-scope="scope">
                   <el-button
                     size="mini"
@@ -149,12 +149,12 @@
                     <i class="el-icon-delete operate-btn"></i>删除
                   </el-button>
                 </template>
-              </el-table-column>
+              </el-table-column> -->
             </el-table>
             <el-pagination
               style="margin-top: 16px; text-align:right;"
               layout="total, sizes, prev, pager, next, jumper"
-              :page-sizes="[5, 10, 15, 20]"
+              :page-sizes="[10, 20, 50, 100]"
               :total="total"
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
@@ -171,16 +171,10 @@ import citys from "src/data/citii";
 import rules from 'src/assets/js/rules';
 // import areaJson from "src/data/city";
 export default {
-  components: {
-    exam
-  },
-  mounted() {
-    this.getTableData();
-    this.superPlat();
-    this.getRoleList();
-  },
+  components: { exam },
   data() {
     return {
+      perm12: false,
       dialogEditVisible: false,
       checkAll: false,
       isIndeterminate: true,
@@ -202,12 +196,16 @@ export default {
       formLabelWidth: "100px",
       roleList: [],
       powerList: [
-        { value: "1", label: "上架商品" },
-        { value: "2", label: "商户审核" }
+        { value: "7", label: "商品上架(暂未开放)" },
+        { value: "8", label: "商品下架" },
+        { value: "9", label: "商品添加" },
+        { value: "10", label: "商品修改" },
+        { value: "11", label: "订单管理" },
+        { value: "12", label: "子账号添加" },
+        { value: "13", label: "财务管理" }
       ],
       labelPosition: "left",
       id: "",
-      loginId: "", //判断是否是超管
       editPower: [],
       editName: "",
       editRoleName: "",
@@ -217,11 +215,16 @@ export default {
   computed: {},
   watch: {},
   created() {
-    this.getId();
+    this.getPermTrueOrFalse();
+  },
+  mounted() {
+    this.getTableData();
+    this.superPlat();
+    this.getRoleList();
   },
   methods: {
-    getId() {
-      this.loginId = JSON.parse(localStorage.getItem("user")).id;
+    getPermTrueOrFalse() {
+      this.perm12 = this.getTrueOrFalse("12");
     },
     //判断是否是超管
     superPlat() {

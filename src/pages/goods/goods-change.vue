@@ -30,6 +30,7 @@
           type="daterange"
           value-format="MM-dd"
           format="MM-dd"
+          :editable="false"
           range-separator="至"
           start-placeholder="商品上市日期"
           end-placeholder="商品下市日期"
@@ -46,6 +47,7 @@
           v-model="ruleForm1.distribution"
         ></el-cascader>
       </el-form-item>
+      <div class="up-tit">请上传一到五张图片</div>
       <div class="img_box">
         <div
           class="img_size"
@@ -53,11 +55,13 @@
           :key="index"
           v-show="imgList.length!=0"
         >
-          <img v-if="item.file.type.indexOf('image') !== -1" :src="item.file.src" />
-          <div class="remove_logo" @click="fileDel">X</div>
+          <viewer :images="[item]">
+            <img :src="item" />
+          </viewer>
+          <div class="remove_logo" @click="fileDel(index)">X</div>
         </div>
         <div class="add_img" @click="fileClick" v-show="addState">
-          <span>十</span>
+          <span>+</span>
         </div>
         <input
           id="inpu"
@@ -176,7 +180,7 @@
       </div>
     </el-form>
     <div slot="footer" class="dialog-footer">
-      <el-button type="primary" @click="submitForm">提 交</el-button>
+      <el-button type="primary" :loading="canSubmit" @click="submitForm">提 交</el-button>
       <el-button type="primary" plain @click="resetForm">重 置</el-button>
       <el-button type="info" @click="cancelDialog">取 消</el-button>
     </div>
@@ -191,11 +195,12 @@ export default {
   props: ["goods"],
   data() {
     return {
-      areaOptions: [],
+      canSubmit: true,
+      areaOptions: all,
       formLabelWidth: "100px",
       labelPosition: "top",
       loading: false,
-      props: { multiple: true },
+      props: { multiple: true, checkStrictly: true },
       type: localStorage.getItem("type"),
       dialogAddGoodsVisible: false,
       addPage: "1", //form表单页码
@@ -242,18 +247,25 @@ export default {
           { required: true, message: "请填写食用方法简介", trigger: "change" }
         ]
       },
-      goodsList: [],
       imgList: [],
+      goodsList: [],
       addState: true
     };
   },
   created() {
-    this.areaOptions = all.map(item => {
-      return {
-        value: item.value,
-        label: item.label
-      };
+    let opts = JSON.parse(JSON.stringify(all));
+    $.each(opts, (index, item) => {
+      $.each(item.children, (secondIndex, secondItem) => {
+        delete secondItem.children;
+      });
     });
+    this.areaOptions = opts;
+    // this.areaOptions = all.map(item => {
+    //   return {
+    //     value: item.value,
+    //     label: item.label
+    //   };
+    // });
   },
   mounted() {
     this.getGoodsInfo();
@@ -263,10 +275,10 @@ export default {
       this.getGoodsInfo();
     },
     imgList() {
-      if (this.imgList.length == 9) {
-        this.addState = false;
-      } else {
+      if (this.imgList.length < 5) {
         this.addState = true;
+      } else {
+        this.addState = false;
       }
     }
   },
@@ -275,76 +287,86 @@ export default {
     fileClick() {
       document.getElementById("inpu").click();
     },
-    fileChange(el) {
-      const list = this.$refs.file.files;
-      console.log(this.$refs.file.files);
-      if (!el.target.files[0].size) return;
-      this.fileList(el.target);
-      el.target.value = "";
-    },
-    fileList(fileList) {
-      console.log(fileList);
-      let files = fileList.files;
-      for (let i = 0; i < files.length; i++) {
-        //判断是否为文件夹
-        if (files[i].type != "") {
-          this.fileAdd(files[i]);
-        } else {
-          //文件夹处理
-          this.folders(fileList.items[i]);
-        }
-      }
-    },
-    //文件夹处理
-    folders(files) {
-      let _this = this;
-      //判断是否为原生file
-      if (files.kind) {
-        files = files.webkitGetAsEntry();
-      }
-      files.createReader().readEntries(function(file) {
-        for (let i = 0; i < file.length; i++) {
-          if (file[i].isFile) {
-            _this.foldersAdd(file[i]);
-          } else {
-            _this.folders(file[i]);
-          }
-        }
-      });
-    },
-    foldersAdd(entry) {
-      let _this = this;
-      entry.file(function(file) {
-        _this.fileAdd(file);
-      });
-    },
-    fileAdd(file) {
-      console.log(file);
-      //总大小
-      this.size = this.size + file.size;
-      let reader = new FileReader();
-      reader.vue = this;
-      reader.readAsDataURL(file);
-      reader.onload = function() {
-        file.src = this.result;
-        this.vue.imgList.push({
-          file
+    fileChange(e) {
+      console.log(e.target.files[0].size);
+      if((e.target.files[0].size / 1024 / 1024) > 2) {
+        this.$message({
+          message: "图片大小不能超过2M！",
+          type: "error",
+          duration: 2000
         });
+        return false;
+      }
+      this.canSubmit = true;
+      var reader = new FileReader();
+      reader.readAsArrayBuffer(e.target.files[0]);
+      reader.onload = event => {
+        // blob stuff
+        var blob = new Blob([event.target.result]); // create blob...
+        let blobURL = this.getObjectURL(blob); // and get it's URL
+        this.imgList.push(blobURL);
+        // this.getGoodsList();
+        this.upload(blobURL);
       };
     },
+    getObjectURL(file) {
+      var url = null;
+      if (window.createObjectURL != undefined) {
+        url = window.createObjectURL(file);
+      } else if (window.URL != undefined) {
+        url = window.URL.createObjectURL(file);
+      } else if (window.webkitURL != undefined) {
+        url = window.webkitURL.createObjectURL(file);
+      }
+      return url;
+    },
     fileDel(index) {
+      this.canSubmit = true;
       this.imgList.splice(index, 1);
-      console.log(this.imgList);
+      // this.getGoodsList();
+      this.goodsList.splice(index, 1);
+      this.canSubmit = false;
+    },
+    getGoodsList() {
+      this.goodsList = [];
+      $.each(this.imgList, (index, item) => {
+        this.upload(item);
+      });
     },
     //回显商品图片
     showGoodsList() {
+      this.imgList = [];
       let arr = this.goods.goodsProductName.split(",");
-      for (let i = 0; i < arr.length; i++) {
-        this.upload(this.goods.goodsPicList[0].picPath + "/" + arr[i]);
-      }
+      console.log(arr);
+      $.each(arr, (index, item) => {
+        this.imgList.push(this.goods.goodsPicList[0].picPath + "/" + item);
+      });
+      // this.imgList = arr.map(item => {
+      //   return this.goods.goodsPicList[0].picPath + "/" + item;
+      // });
+      this.getGoodsList();
+      // for (let i = 0; i < arr.length; i++) {
+      //   this.upload(this.goods.goodsPicList[0].picPath + "/" + arr[i]);
+      // }
     },
     //图片路径转化为blob
     upload(src) {
+      // if (!HTMLCanvasElement.prototype.toBlob) {
+      //     Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
+      //       value: function (callback, type, quality) {   
+      //         var canvas = this;                        
+      //         setTimeout(function () {                          
+      //           var binStr = atob(canvas.toDataURL(type, quality).split(',')[1]);
+      //           var len = binStr.length;                          
+      //           var arr = new Uint8Array(len);
+      //           for (var i = 0; i < len; i++) {                            
+      //             arr[i] = binStr.charCodeAt(i);                          
+      //           }                           
+      //           callback(new Blob([arr], { type: type || 'image/png' }));
+      //         });                      
+      //       }                    
+      //     });                  
+      //   }
       var img = new Image();
       img.setAttribute("crossorigin", "anonymous");
       img.src = src;
@@ -355,28 +377,21 @@ export default {
         cvs.height = img.height;
         ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
         cvs.toBlob(e => {
-          //blob转file
-          let _file = new window.File(
+          let file = new window.File(
             [new Blob([e], { type: "mime" })],
             "test.jpeg",
-            { type: "image/jpeg" }
-          );
-          _file.src = src;
-          let reader = new FileReader();
-          reader.vue = this;
-          reader.readAsDataURL(_file);
-          reader.onload = function() {
-            _file.src = this.result;
-            console.log(_file);
-          };
-          this.imgList.push(
-            new window.File([new Blob([e], { type: "mime" })], "test.jpeg", {
+            {
               type: "image/jpeg"
-            })
+            }
           );
+          this.goodsList.push(file);
+          if(this.imgList.length == this.goodsList.length) {
+            this.canSubmit = false;
+          }
         });
       };
     },
+    //获取父组件商品信息
     getGoodsInfo() {
       this.ruleForm1 = {
         name: this.goods.name,
@@ -386,11 +401,28 @@ export default {
           this.goods.seasinal.split("#")[1]
         ],
         merchantPrice: this.goods.merchantPrice,
-        distribution: this.goods.distribution.split(",")
+        // distribution: this.goods.distribution.split(",")
+        distribution: this.getAreaNums()
       };
+      this.imgList = [];
+      this.goodsList = [];
       if (this.goods.goodsProductName) {
         this.showGoodsList();
       }
+    },
+    getAreaNums() {
+      let areas = [];
+      let _areas = [];
+      $.each(this.goods.areaNums, (index, item) => {
+        areas.push(item);
+      });
+      $.each(areas, (index, item) => {
+        if(item.length > 1) {
+          item = item.split(',');
+        }
+        _areas.push(item);
+      });
+      return _areas;
     },
     //关闭form表单窗口
     cancelDialog() {
@@ -398,7 +430,6 @@ export default {
     },
     //本地浏览商品图片
     onGoodsUploadChange(file, fileList) {
-      console.log(fileList);
       this.getGoodsFileList(file, fileList);
     },
     getGoodsFileList(file, fileList) {
@@ -475,22 +506,36 @@ export default {
         if (valid) {
           let formData = new FormData();
           if (this.addPage == "1") {
-            let distribution = [];
-            distribution = this.ruleForm1.distribution.map(item => {
-              return item;
-            });
-            formData.append("type", "1");
-            formData.append("name", this.ruleForm1.name);
-            formData.append("goodsAddId", this.goods.id);
-            formData.append("seasinalOnDate", this.ruleForm1.seasinal[0]);
-            formData.append("seasinalOffDate", this.ruleForm1.seasinal[1]);
-            formData.append("merchantPrice", this.ruleForm1.merchantPrice);
-            formData.append("specs", this.ruleForm1.specs);
-            formData.append("distribution", distribution);
-            this.img.forEach(item => {
-              formData.append("productImages", item);
-            });
-            this.changeSub(formData);
+            console.log(this.goodsList.length, this.imgList.length);
+            if (!this.goodsList.length) {
+              this.$message.error("请上传一到五张商品图片");
+            } else {
+              if (this.goodsList.length < this.imgList.length) {
+                this.$message({
+                  type: "error",
+                  message: "请重试",
+                  duration: 2000
+                });
+                return false;
+              }
+              let distribution = [];
+              distribution = this.ruleForm1.distribution.map(item => {
+                return item.length == 2 ? item[1] : item[0];
+              });
+              console.log(distribution);
+              this.goodsList.forEach(item => {
+                  formData.append("productImages", item);
+                });
+              formData.append("type", "1");
+              formData.append("name", this.ruleForm1.name);
+              formData.append("goodsAddId", this.goods.id);
+              formData.append("seasinalOnDate", this.ruleForm1.seasinal[0]);
+              formData.append("seasinalOffDate", this.ruleForm1.seasinal[1]);
+              formData.append("merchantPrice", this.ruleForm1.merchantPrice);
+              formData.append("specs", this.ruleForm1.specs);
+              formData.append("distribution", distribution);
+              this.changeSub(formData);
+            }
           } else {
             formData.append("type", "2");
             formData.append("goodsAddId", this.goods.id);
@@ -515,7 +560,13 @@ export default {
         .then(res => {
           this.success(res);
         })
-        .catch();
+        .catch(error => {
+          this.$message({
+          message: "上传失败，请重试！",
+          type: "error",
+          duration: 2000
+        });
+        });
     },
     success(res) {
       if (res.code == 1) {
@@ -538,6 +589,8 @@ export default {
     resetForm() {
       if (this.addPage == "1") {
         this.$refs["ruleForm1"].resetFields();
+        this.imgList = [];
+        this.goodsList = [];
       } else {
         this.$refs["ruleForm2"].resetFields();
         this.identityImageUrl = "";
@@ -623,30 +676,43 @@ export default {
   }
 }
 .img_size {
-  width: 100px;
-  height: 104px;
+  width: 120px;
+  height: 124px;
   position: relative;
+  margin-right: 10px;
   img {
     display: block;
-    width: 100px;
-    height: 104px;
+    width: 120px;
+    height: 124px;
   }
+}
+.up-tit {
+  margin: 20px 0;
 }
 .img_box {
   width: 100%;
   padding: 0 2%;
   display: flex;
+  margin-bottom: 20px;
   flex-wrap: wrap;
+  .add_img {
+    width: 100px;
+    height: 100px;
+    border: 1px dashed #999;
+    @include fx(center);
+    font-size: 30px;
+    cursor: pointer;
+  }
   .remove_logo {
     position: absolute;
-    width: 10px;
-    height: 10px;
-    background: red;
-    top: 5px;
-    right: 5px;
+    width: 20px;
+    height: 20px;
+    background: #999;
+    top: 0;
+    right: 0;
     text-align: center;
-    font-size: 12px;
-    color: #000;
+    font-size: 20px;
+    color: #555;
   }
 }
 </style>

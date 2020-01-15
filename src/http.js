@@ -15,10 +15,12 @@ import router from './router/index';
 // axios 配置
 // axios.defaults.withCredentials=true;
 const http = axios.create({
-  baseURL: '/api',
-  // baseURL: 'http://192.168.0.113:8050',
-  // baseURL: 'https://www.xtll.top:8050',
-  timeout: 5000,
+  // baseURL: '/api',
+  // baseURL: 'http://192.168.0.188:8050',
+  // baseURL: 'http://192.168.0.199:8050',
+  baseURL: 'http://39.98.240.46:8050/',
+  // baseURL: 'https://xtll.top:8050',
+  timeout:10000,
   headers: {
     'Content-Type': 'application/json;charset=UTF-8'
   },
@@ -54,6 +56,7 @@ http.interceptors.request.use(config => {
   }
   if(config.url != '/login') {
     config.headers['Authorization'] = localStorage.getItem('token') ? localStorage.getItem('token') : '';
+    // config.headers['Authorization'] = '2222222';
   }
   return config;
 }, error => {

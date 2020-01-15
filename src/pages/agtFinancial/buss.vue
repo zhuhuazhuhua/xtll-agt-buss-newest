@@ -26,7 +26,7 @@
                       <span>{{props.row.name}}</span>
                     </el-form-item>
                     <el-form-item label="金流(元)：">
-                      <span>{{props.row.financeStreamTotal}}</span>
+                      <span>{{props.row.financeStreamTotal | getAmount}}</span>
                     </el-form-item>
                     <el-form-item label="手机号：">
                       <span>{{ props.row.telephone }}</span>
@@ -36,7 +36,9 @@
               </el-table-column>
               <el-table-column label="账号" prop="loginName" align="center"></el-table-column>
               <el-table-column label="农场名" prop="name" align="center"></el-table-column>
-              <el-table-column label="金流(元)" prop="financeStreamTotal" align="center"></el-table-column>
+              <el-table-column label="金流(元)" align="center">
+                <template slot-scope="props">{{props.row.financeStreamTotal | getAmount}}</template>
+              </el-table-column>
               <el-table-column label="手机号" prop="telephone" align="center"></el-table-column>
               <el-table-column label="操作" align="center">
                 <template slot-scope="scope">
@@ -48,7 +50,7 @@
             <el-pagination
               style="margin-top: 16px; text-align:right;"
               layout="total, sizes, prev, pager, next, jumper"
-              :page-sizes="[5, 10, 15, 20]"
+              :page-sizes="[10, 20, 50, 100]"
               :total="total"
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"

@@ -9,6 +9,10 @@
               <span class="sort">
                 商品分类
                 <el-cascader class="casa" v-model="value" :options="options" @change="handleChange"></el-cascader>
+                <el-radio-group class="special-left" v-model="special">
+                  <el-radio :label="2">非特价商品</el-radio>
+                  <el-radio :label="1">特价商品</el-radio>
+                </el-radio-group>
               </span>
               <el-button v-if="type == '3'" type="text" @click="addGoods" class="add-btn">新增商品</el-button>
               <el-radio-group v-if="type == '3'" class="radio-group" v-model="statusType">
@@ -55,7 +59,7 @@
                         class="nowrap"
                         v-for="(item, index) in props.row.areas"
                         :key="index"
-                      >{{item.province + ', '}}</span>
+                      >{{item.province + (item.city ? item.city : '')}}, </span>
                       </div>
                     </el-form-item>
                     <el-form-item label="公司介绍">
@@ -104,12 +108,12 @@
               </el-table-column>
               <el-table-column label="配送范围" prop="areas" align="center">
                 <template slot-scope="scope">
-                  <div style="max-height: 50px!important;">
+                  <div class="send-areas">
                   <span
                     class="nowrap"
                     v-for="(item, index) in scope.row.areas"
                     :key="index"
-                  >{{item.province + ', '}}</span>
+                  >{{item.province + (item.city ? item.city : '')}}, </span>
                   </div>
                 </template>
               </el-table-column>
@@ -149,7 +153,7 @@
             <el-pagination
               style="margin-top: 16px; text-align:right;"
               layout="total, sizes, prev, pager, next, jumper"
-              :page-sizes="[5, 10, 15, 20]"
+              :page-sizes="[10, 20, 50, 100]"
               :total="total"
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
@@ -350,6 +354,7 @@ export default {
   },
   data() {
     return {
+      special: 2,//是否是特价商品
       areaOptions: [],
       formLabelWidth: "100px",
       statusType: 7,
@@ -443,6 +448,9 @@ export default {
     statusType(val) {
       this.statusType = val;
       this.getTableData();
+    },
+    special() {
+      this.getTableData();
     }
   },
   computed: {},
@@ -485,7 +493,8 @@ export default {
               pageNum: this.currentpage,
               pageSize: this.pagesize,
               goodType: this.goodsType,
-              status: "4"
+              status: "4",
+              bargainGoods: this.special
             }
           : {
               pageNum: this.currentpage,
@@ -496,12 +505,12 @@ export default {
                   ? ""
                   : this.statusType == "1"
                   ? "1,4,5"
-                  : this.statusType
+                  : this.statusType,
+              bargainGoods: this.special
             };
       this.axios
         .post("/goods/findGoodsByPage", data)
         .then(res => {
-          console.log(111);
           if (res.code == "1") {
             this.tableData = res.rows;
             this.total = res.total;
@@ -782,7 +791,7 @@ export default {
     //商品种类
     handleChange(value) {
       this.goodsType = value.join(",");
-      value != "1" && this.$set(this.ruleForm, "goodsType", value);
+      if(value != "1") this.$set(this.ruleForm, "goodsType", value);
       this.getTableData();
     },
     handleSizeChange(value) {

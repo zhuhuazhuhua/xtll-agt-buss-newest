@@ -4,7 +4,7 @@
       <el-col :span="24">
         <el-card>
           <div slot="header" class="header">
-            <el-page-header @back="goBack" content="订单金流列表"></el-page-header>
+            <el-page-header @back="goBack" content="商品订单"></el-page-header>
             <span class="name">商品名称：{{name}}</span>
           </div>
           <div class="table-wrapper">
@@ -18,6 +18,9 @@
               <el-table-column type="expand">
                 <template slot-scope="props">
                   <el-form label-position="left" class="table-expand">
+                    <el-form-item label="编号：">
+                      <span>{{ props.row.plantUid }}</span>
+                    </el-form-item>
                     <el-form-item label="时间：">
                       <span>{{ props.row.createTime }}</span>
                     </el-form-item>
@@ -25,7 +28,7 @@
                       <span>{{ props.row.status }}</span>
                     </el-form-item>
                     <el-form-item label="金额(元)：">
-                      <span>{{ props.row.money }}</span>
+                      <span>{{ props.row.money | getAmount }}</span>
                     </el-form-item>
                     <el-form-item label="付款比例：">
                       <span>{{ props.row.percentage }}</span>
@@ -33,15 +36,18 @@
                   </el-form>
                 </template>
               </el-table-column>
+              <el-table-column label="编号" prop="plantUid" align="center"></el-table-column>
               <el-table-column label="时间" prop="createTime" align="center"></el-table-column>
               <el-table-column label="付款类型" prop="status" align="center"></el-table-column>
-              <el-table-column label="金额(元)" prop="money" align="center"></el-table-column>
+              <el-table-column label="金额(元)" align="center">
+                <template slot-scope="props">{{props.row.money | getAmount}}</template>
+              </el-table-column>
               <el-table-column label="比例" prop="percentage" align="center"></el-table-column>
             </el-table>
             <el-pagination
               style="margin-top: 16px; text-align:right;"
               layout="total, sizes, prev, pager, next, jumper"
-              :page-sizes="[5, 10, 15, 20]"
+              :page-sizes="[10, 20, 50, 100]"
               :total="total"
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"

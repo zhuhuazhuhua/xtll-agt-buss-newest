@@ -6,10 +6,10 @@
           <div slot="header" class="header">
             <div>
               <span>账户列表</span>
-              <el-button type="text" @click="addNew" class="add-btn">新增账号</el-button>
+              <el-button v-if="perm1" type="text" @click="addNew" class="add-btn">新增账号</el-button>
             </div>
             <el-cascader class="casa" v-model="areaId" placeholder="请选择区域" :options="provinceOptions" @change="handleChange"></el-cascader>
-            <el-dialog title="新增账号" :visible.sync="dialogFormVisible" :modal-append-to-body="false">
+            <el-dialog v-if="perm1" title="新增账号" :visible.sync="dialogFormVisible" :modal-append-to-body="false">
               <el-form
                 :model="ruleForm"
                 status-icon
@@ -118,11 +118,13 @@
                       <span>{{ props.row.telephone }}</span>
                     </el-form-item>
                     <el-form-item label="负责区域">
-                      <div
+                      <div>
+                      <span
                         class
                         v-for="(item, index) in props.row.areas"
                         :key="index"
-                      >{{item.province ? item.province : '' + item.city ? item.city : '' + item.district ? item.district : ''}}</div>
+                      >{{item.province ? item.province : ''}}{{item.city ? item.city : ''}}{{item.district ? item.district : ''}}{{item.province || item.city || item.district ? ', ' : ''}}</span>
+                      </div>
                     </el-form-item>
                     <el-form-item label="权限">
                       <span>{{ getPower(props.row.perm) }}</span>
@@ -165,7 +167,7 @@
             <el-pagination
               style="margin-top: 16px; text-align:right;"
               layout="total, sizes, prev, pager, next, jumper"
-              :page-sizes="[5, 10, 15, 20]"
+              :page-sizes="[10, 20, 50, 100]"
               :total="total"
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
@@ -189,11 +191,6 @@ export default {
   components: {
     exam
   },
-  mounted() {
-    this.getTableData();
-    this.superPlat();
-    this.getRoleList();
-  },
   data() {
     // var validatePass = (rule, value, callback) => {
     //   if (value === "") {
@@ -215,6 +212,9 @@ export default {
     //   }
     // };
     return {
+      perm1: false,
+      perm2: false,
+      perm3: false,
       time: "",
       provinceOptions: [],
       userClasses: [
@@ -247,8 +247,12 @@ export default {
       formLabelWidth: "100px",
       roleList: [],
       powerList: [
-        { value: "1", label: "商户添加" },
-        { value: "2", label: "商户审核" }
+        { value: "1", label: "子账号添加" },
+        { value: "2", label: "子账号修改(暂未开放)" },
+        { value: "3", label: "子账号删除(暂未开放)" },
+        { value: "4", label: "商户初审" },
+        { value: "5", label: "商户添加" },
+        { value: "6", label: "财务管理" }
       ],
       labelPosition: "left",
       identityImageUrl: "", //身份证
@@ -269,8 +273,19 @@ export default {
     
   },
   created() {
+    this.getPermTrueOrFalse();
+  },
+  mounted() {
+    this.getTableData();
+    this.superPlat();
+    this.getRoleList();
   },
   methods: {
+    getPermTrueOrFalse() {
+      this.perm1 = this.getTrueOrFalse("1");
+      this.perm2 = this.getTrueOrFalse("2");
+      this.perm3 = this.getTrueOrFalse("3");
+    },
     //选择区域
     handleChange(e) {
       this.areaId = e[e.length-1];

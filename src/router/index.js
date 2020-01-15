@@ -8,7 +8,7 @@ import { setTitle } from 'src/assets/js/util';
 Vue.use(VueRouter);
 
 const routerConfig = {
-  mode: 'history',
+  // mode: 'history',
   linkActiveClass: 'active',
   routes: routers
 };

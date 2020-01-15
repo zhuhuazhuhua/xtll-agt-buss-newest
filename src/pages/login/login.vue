@@ -195,9 +195,11 @@ export default {
               localStorage.setItem("token", "Bearer " + res.data.token);
               localStorage.setItem("type", this.form.type);
               localStorage.setItem("user", JSON.stringify(info));
-              localStorage.setItem("myId", myUrl.id); //0 为代理商超管
+              localStorage.setItem("myId", myUrl.id);
               localStorage.setItem("remark", myUrl.remark);
               localStorage.setItem("isLogin", "1");
+              // localStorage.setItem("agtId", myUrl.agtId);
+              localStorage.setItem("perm", myUrl.perm);
               if (res.data.loginUser.user.areaNums) {
                 localStorage.setItem(
                   "areaNums",

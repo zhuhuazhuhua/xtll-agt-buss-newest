@@ -1,7 +1,9 @@
 <template>
   <div class="layout">
     <div class="siderbar-wrapper" :style="{width: this.isCollapsed?'64px':'200px'}">
-      <div class="logo-wrapper">logo</div>
+      <div class="logo-wrapper">
+        <img src="../../../static/logo.png" style="width:50px;" alt="">
+      </div>
       <el-menu
         background-color="#424f63"
         text-color="#fff"
@@ -222,8 +224,6 @@ export default {
   background-color: $siderbarBackgroundColor;
   transition: all 0.3s ease-in-out;
   .logo-wrapper {
-    height: 40px;
-    line-height: 40px;
     padding: 16px 0;
     text-align: center;
     font-size: 24px;

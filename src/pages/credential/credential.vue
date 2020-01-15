@@ -34,14 +34,28 @@
                 <div class="item-title">分成比例:</div>
                 <div class="item-content">
                   <div class="proportion-first" v-for="(item, index) in proportions" :key="index">
-                    <div class="first">
-                      <div class="first-city">{{item.city}}：{{item.leval == '1' ? '15%' : item.leval == '2' ? '3%' : '3%'}}</div>
+                    <div class="first" v-if="item.leval == '1'">
+                      <!-- <div class="first-city">{{item.city}}：{{item.leval == '1' ? '15%' : item.leval == '2' ? '3%' : '3%'}}</div>
                       <div class="second" v-for="(secondItem, secondIndex) in item.children" :key="secondIndex">
                         <div class="second-city">{{secondItem.city}}：{{secondItem.leval == '1' ? '15%' : secondItem.leval == '2' ? '3%' : '3%'}}</div>
                         <div class="third" v-for="(thirdItem, thirdIndex) in secondItem.children" :key="thirdIndex">
                           <div class="third-city">{{thirdItem.city}}：{{thirdItem.leval == '1' ? '15%' : thirdItem.leval == '2' ? '3%' : '3%'}}</div>
                         </div>
+                      </div> -->
+                      <div class="first-city">{{item.city}}：15%</div>
+                      <div class="second" v-for="(secondItem, secondIndex) in item.children" :key="secondIndex">
+                        <div class="second-city">{{secondItem.city}}：{{secondItem.leval == '2' ? '3%' : '7%'}}</div>
+                        <!-- <div class="third" v-for="(thirdItem, thirdIndex) in secondItem.children" :key="thirdIndex">
+                          <div class="third-city">{{thirdItem.city}}：{{thirdItem.leval == '1' ? '15%' : thirdItem.leval == '2' ? '3%' : '3%'}}</div>
+                        </div> -->
                       </div>
+                    </div>
+                    <div class="first" v-if="item.leval == '2'">
+                      <div class="first-city">{{item.city}}：12%</div>
+                      <div class="second" v-for="(secondItem, secondIndex) in item.children" :key="secondIndex">{{secondItem.city}}：4%</div>
+                    </div>
+                    <div class="first" v-if="item.leval == '3'">
+                      <div class="first-city">{{item.city}}：7%</div>
                     </div>
                   </div>
                 </div>
@@ -102,6 +116,7 @@ export default {
     getProportion() {
       this.axios.get('/agt/getAgtSharingPro')
       .then(res => {
+        console.log(res);
         this.proportions = res.data;
       })
       .catch();
@@ -147,6 +162,9 @@ export default {
       }
       .item-content {
         margin-left: 8px;
+        .proportion-first {
+          margin-bottom: 25px;
+        }
         .second {
           margin-left: 30px;
           margin-top: 10px;
